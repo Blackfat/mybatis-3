@@ -20,8 +20,16 @@ package org.apache.ibatis.parsing;
  */
 public class GenericTokenParser {
 
+  /**
+   * 开始Token的字符串
+   */
   private final String openToken;
+  /**
+   * 结束Token的字符串
+   */
   private final String closeToken;
+
+
   private final TokenHandler handler;
 
   public GenericTokenParser(String openToken, String closeToken, TokenHandler handler) {
@@ -42,7 +50,7 @@ public class GenericTokenParser {
     char[] src = text.toCharArray();
     int offset = 0;
     final StringBuilder builder = new StringBuilder();
-    StringBuilder expression = null;
+    StringBuilder expression = null;// 匹配Token之间的表达式
     while (start > -1) {
       if (start > 0 && src[start - 1] == '\\') {
         // this open token is escaped. remove the backslash and continue.

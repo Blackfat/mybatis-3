@@ -39,15 +39,32 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-/**
+/**XML解析器
  * @author Clinton Begin
  */
 public class XPathParser {
 
+  /**
+   * XML Document对象
+   */
   private final Document document;
+  /**
+   * 是否校验
+   */
   private boolean validation;
+  /**
+   * XML实体解析器
+   */
   private EntityResolver entityResolver;
+
+  /**
+   * 用来替换需要动态配置的属性值
+   */
   private Properties variables;
+
+  /**
+   * JAVA XPath对象
+   */
   private XPath xpath;
 
   public XPathParser(String xml) {
@@ -217,6 +234,14 @@ public class XPathParser {
     return new XNode(this, node, variables);
   }
 
+    /**
+     * 获取指定元素节点的值
+     *
+     * @param expression 表达式
+     * @param root   指定节点
+     * @param returnType 返回类型
+     * @return
+     */
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
       return xpath.evaluate(expression, root, returnType);
