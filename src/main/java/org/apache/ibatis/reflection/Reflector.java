@@ -46,23 +46,61 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
  */
 public class Reflector {
 
+  /**
+   *对应的类
+   */
   private final Class<?> type;
+
+  /**
+   *可读属性组
+   */
   private final String[] readablePropertyNames;
+
+  /**
+   *可写属性组
+   */
   private final String[] writeablePropertyNames;
+  /*
+  *属性对应的set方法集合
+  * */
   private final Map<String, Invoker> setMethods = new HashMap<>();
+  /*
+  *属性对应的get方法集合
+  * */
   private final Map<String, Invoker> getMethods = new HashMap<>();
+  /*
+  *属性对应的 setting 方法的方法参数类型的映射
+  * */
   private final Map<String, Class<?>> setTypes = new HashMap<>();
+  /*
+  *
+  *属性对应的 getting 方法的返回值类型的映射
+  * */
   private final Map<String, Class<?>> getTypes = new HashMap<>();
+  /*
+  *默认构造方法
+  * */
   private Constructor<?> defaultConstructor;
 
+  /*
+  *
+  *不区分大小写的属性集合
+  *
+  * */
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
   public Reflector(Class<?> clazz) {
+    //设置对应的类
     type = clazz;
+    // 初始化 defaultConstructor
     addDefaultConstructor(clazz);
+    // 初始化 getMethods 和 getTypes ，通过遍历 getting 方法
     addGetMethods(clazz);
+    // 初始化 setMethods 和 setTypes ，通过遍历 setting 方法
     addSetMethods(clazz);
+    // 初始化 getMethods + getTypes 和 setMethods + setTypes ，通过遍历 fields 属性
     addFields(clazz);
+    // 初始化 readablePropertyNames、writeablePropertyNames、caseInsensitivePropertyMap 属性
     readablePropertyNames = getMethods.keySet().toArray(new String[getMethods.keySet().size()]);
     writeablePropertyNames = setMethods.keySet().toArray(new String[setMethods.keySet().size()]);
     for (String propName : readablePropertyNames) {
@@ -74,7 +112,9 @@ public class Reflector {
   }
 
   private void addDefaultConstructor(Class<?> clazz) {
+       // 获得所有构造方法
     Constructor<?>[] consts = clazz.getDeclaredConstructors();
+      // 遍历所有构造方法，查找无参的构造方法
     for (Constructor<?> constructor : consts) {
       if (constructor.getParameterTypes().length == 0) {
           this.defaultConstructor = constructor;
@@ -84,8 +124,10 @@ public class Reflector {
 
   private void addGetMethods(Class<?> cls) {
     Map<String, List<Method>> conflictingGetters = new HashMap<>();
+    // 获取所有的方法
     Method[] methods = getClassMethods(cls);
     for (Method method : methods) {
+        // 参数大于 0 ，说明不是 getting 方法，忽略
       if (method.getParameterTypes().length > 0) {
         continue;
       }
@@ -100,6 +142,7 @@ public class Reflector {
   }
 
   private void resolveGetterConflicts(Map<String, List<Method>> conflictingGetters) {
+      // 遍历每个属性，查找其最匹配的方法。因为子类可以覆写父类的方法，所以一个属性，可能对应多个 get 方法
     for (Entry<String, List<Method>> entry : conflictingGetters.entrySet()) {
       Method winner = null;
       String propName = entry.getKey();
@@ -163,6 +206,7 @@ public class Reflector {
   }
 
   private void resolveSetterConflicts(Map<String, List<Method>> conflictingSetters) {
+      // 遍历每个属性，查找其最匹配的方法。因为子类可以覆写父类的方法，所以一个属性，可能对应多个 set 方法
     for (String propName : conflictingSetters.keySet()) {
       List<Method> setters = conflictingSetters.get(propName);
       Class<?> getterType = getTypes.get(propName);
@@ -291,6 +335,7 @@ public class Reflector {
   private Method[] getClassMethods(Class<?> cls) {
     Map<String, Method> uniqueMethods = new HashMap<>();
     Class<?> currentClass = cls;
+      // 循环类，类的父类，类的父类的父类，直到父类为 Object
     while (currentClass != null && currentClass != Object.class) {
       addUniqueMethods(uniqueMethods, currentClass.getDeclaredMethods());
 
@@ -304,6 +349,7 @@ public class Reflector {
       currentClass = currentClass.getSuperclass();
     }
 
+    // 转换成数组返回
     Collection<Method> methods = uniqueMethods.values();
 
     return methods.toArray(new Method[methods.size()]);
@@ -325,6 +371,7 @@ public class Reflector {
 
   private String getSignature(Method method) {
     StringBuilder sb = new StringBuilder();
+    // returnType#方法名:参数名1,参数名2,参数名3
     Class<?> returnType = method.getReturnType();
     if (returnType != null) {
       sb.append(returnType.getName()).append('#');

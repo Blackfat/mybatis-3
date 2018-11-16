@@ -17,7 +17,7 @@ package org.apache.ibatis.reflection.property;
 
 import java.util.Iterator;
 
-/**
+/** 属性分词器 order[0].item[0].name 拆分为"order[0]"、"item[0]"、"name"
  * @author Clinton Begin
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
