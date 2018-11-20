@@ -35,6 +35,9 @@ import org.apache.ibatis.io.Resources;
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
+/*
+* 非池化数据源
+* */
 public class UnpooledDataSource implements DataSource {
   
   private ClassLoader driverClassLoader;
